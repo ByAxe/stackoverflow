@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+    Receives a report from the load balancer only and only if the load balancer 
+    has attempted to communicate with the server mina1 and failed. It then 
+    forwards the message to the server mina3.
+ -->
+
+<!-- START SNIPPET: e1 -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+	xsi:schemaLocation="
+         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<bean id="service" class="org.apache.camel.example.service.Reporting" />
+
+	<camelContext xmlns="http://camel.apache.org/schema/spring">
+
+		<route id="mina2">
+			<from uri="mina:tcp://localhost:9992" />
+			<setHeader headerName="minaServer">
+				<constant>localhost:9992</constant>
+			</setHeader>
+			<bean ref="service" method="updateReport" />
+			<to uri="direct:messageSender2" />
+		</route>
+
+		<route id="sendMessage2">
+			<from uri="direct:messageSender2" />
+            <to uri="mina:tcp://localhost:9993" />
+            <log message="Received message from Load Balancer" />
+		</route>
+	</camelContext>
+
+</beans>
+<!-- END SNIPPET: e1 -->
